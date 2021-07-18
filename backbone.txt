@@ -1,0 +1,305 @@
+
+dataset_base = Config({
+    'name': 'Base Dataset',
+
+    # Training images and annotations
+    'train_images': './data/coco/images/',
+    'train_info':   'path_to_annotation_file',
+
+    # Validation images and annotations.
+    'valid_images': './data/coco/images/',
+    'valid_info':   'path_to_annotation_file',
+
+    # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
+    'has_gt': True,
+
+    # A list of names for each of you classes.
+    'class_names': COCO_CLASSES,
+
+    # COCO class ids aren't sequential, so this is a bandage fix. If your ids aren't sequential,
+    # provide a map from category_id -> index in class_names + 1 (the +1 is there because it's 1-indexed).
+    # If not specified, this just assumes category ids start at 1 and increase sequentially.
+    'label_map': None
+})
+backbone_base = Config({
+    'name': 'Base Backbone',
+    'path': 'path/to/pretrained/weights',
+    'type': object,
+    'args': tuple(),
+    'transform': resnet_transform,
+
+    'selected_layers': list(),
+    'pred_scales': list(),
+    'pred_aspect_ratios': list(),
+
+    'use_pixel_scales': False,
+    'preapply_sqrt': True,
+    'use_square_anchors': False,
+})
+
+resnet101_backbone = backbone_base.copy({
+    'name': 'ResNet101',
+    'path': 'resnet101_reducedfc.pth',
+    'type': ResNetBackbone,
+    'args': ([3, 4, 23, 3],),
+    'transform': resnet_transform,
+
+    'selected_layers': list(range(2, 8)),
+    'pred_scales': [[1]]*6,
+    'pred_aspect_ratios': [ [[0.66685089, 1.7073535, 0.87508774, 1.16524493, 0.49059086]] ] * 6,
+})
+resnet50_backbone = resnet101_backbone.copy({
+    'name': 'ResNet50',
+    'path': 'resnet50-19c8e357.pth',
+    'type': ResNetBackbone,
+    'args': ([3, 4, 6, 3],),
+    'transform': resnet_transform,
+})
+
+resnet50_dcnv2_backbone = resnet50_backbone.copy({
+    'name': 'ResNet50_DCNv2',
+    'args': ([3, 4, 6, 3], [0, 4, 6, 3]),
+})
+yolact_plus_resnet50_config = yolact_plus_base_config.copy({
+    'name': 'yolact_plus_resnet50',
+
+    'backbone': resnet50_dcnv2_backbone.copy({
+        'selected_layers': list(range(1, 4)),
+        
+        'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*5,
+        'pred_scales': [[i * 2 ** (j / 3.0) for j in range(3)] for i in [24, 48, 96, 192, 384]],
+        'use_pixel_scales': True,
+        'preapply_sqrt': False,
+        'use_square_anchors': False,
+    }),
+})
+yolact_coco_custom_config=yolact_plus_resnet50_config.copy({
+  'name':'yolact_coco_custom',
+  'dataset':coco2014_custom_dataset,
+  'max_size':550,
+  'num_classes':len(coco2014_custom_dataset.class_names)+1,
+  #training params
+  'lr_steps':(200000,300000,330000,380000),
+  'max_iter':810000,
+})
+
+----------------------------------------------------------------------------------------------------
+dataset_base = Config({
+    'name': 'Base Dataset',
+
+    # Training images and annotations
+    'train_images': './data/coco/images/',
+    'train_info':   'path_to_annotation_file',
+
+    # Validation images and annotations.
+    'valid_images': './data/coco/images/',
+    'valid_info':   'path_to_annotation_file',
+
+    # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
+    
+
+    # A list of names for each of you classes.
+    
+
+    # COCO class ids aren't sequential, so this is a bandage fix. If your ids aren't sequential,
+    # provide a map from category_id -> index in class_names + 1 (the +1 is there because it's 1-indexed).
+    # If not specified, this just assumes category ids start at 1 and increase sequentially.
+    
+})
+backbone_base = Config({
+    'name': 'Base Backbone',
+    'path': 'path/to/pretrained/weights',
+    'type': object,
+    'args': tuple(),
+    'transform': resnet_transform,
+
+    'selected_layers': list(),
+    'pred_scales': list(),
+    'pred_aspect_ratios': list(),
+
+    'use_pixel_scales': False,
+    'preapply_sqrt': True,
+    'use_square_anchors': False,
+})
+
+resnet101_backbone = backbone_base.copy({
+    'name': 'ResNet101',
+    'path': 'resnet101_reducedfc.pth',
+    'type': ResNetBackbone,
+    'args': ([3, 4, 23, 3],),
+    'transform': resnet_transform,
+
+    'selected_layers': list(range(2, 8)),
+    'pred_scales': [[1]]*6,
+    'pred_aspect_ratios': [ [[0.66685089, 1.7073535, 0.87508774, 1.16524493, 0.49059086]] ] * 6,
+})
+
+
+
+yolact_coco_custom_config=yolact_plus_resnet50_config.copy({
+  'name':'yolact_coco_custom',
+  'dataset':coco2014_custom_dataset,
+###
+  'name':'COCO 2014 Custom',
+  'train_images':'/content/drive/My Drive/yolact-master/data/coco/test',
+  'train_info':'/content/drive/My Drive/yolact-master/data/coco/annotations/instances_train2014.json',
+  'valid_images':'/content/drive/My Drive/yolact-master/data/coco/valid',
+  'valid_info':'/content/drive/My Drive/yolact-master/data/coco/annotations/inatances_val2014.json',
+  'class_names':("car","motorcycle","person","bus","traffic light",),
+})
+###
+  'backbone': resnet50_dcnv2_backbone.copy({
+        'selected_layers': list(range(1, 4)),
+        'args': ([3, 4, 6, 3], [0, 4, 6, 3]),
+        'path': 'resnet50-19c8e357.pth',
+        'type': ResNetBackbone,
+	'transform': resnet_transform,
+###
+		{
+    		'channel_order': 'RGB',
+    		'normalize': True,
+    		'subtract_means': False,
+    		'to_float': False,
+		}
+###
+	'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*5,
+        'pred_scales': [[i * 2 ** (j / 3.0) for j in range(3)] for i in [24, 48, 96, 192, 384]],
+        'use_pixel_scales': True,
+        'preapply_sqrt': False,
+        'use_square_anchors': False,
+	'has_gt': True,
+	'class_names': COCO_CLASSES,
+	'label_map': None
+    }),
+  'max_size':550,
+  'num_classes':len(coco2014_custom_dataset.class_names)+1,
+  #training params
+  'lr_steps':(200000,300000,330000,380000),
+  'max_iter':810000,
+})
+
+===================================================================================================
+dataset_base = Config({
+    'name': 'Base Dataset',
+
+    # Training images and annotations
+    'train_images': './data/coco/images/',
+    'train_info':   'path_to_annotation_file',
+
+    # Validation images and annotations.
+    'valid_images': './data/coco/images/',
+    'valid_info':   'path_to_annotation_file',
+
+    # Whether or not to load GT. If this is False, eval.py quantitative evaluation won't work.
+    'has_gt': True,
+
+    # A list of names for each of you classes.
+    'class_names': COCO_CLASSES,
+
+    # COCO class ids aren't sequential, so this is a bandage fix. If your ids aren't sequential,
+    # provide a map from category_id -> index in class_names + 1 (the +1 is there because it's 1-indexed).
+    # If not specified, this just assumes category ids start at 1 and increase sequentially.
+    'label_map': None
+})
+backbone_base = Config({
+    'name': 'Base Backbone',
+    'path': 'path/to/pretrained/weights',
+    'type': object,
+    'args': tuple(),
+    'transform': resnet_transform,
+
+    'selected_layers': list(),
+    'pred_scales': list(),
+    'pred_aspect_ratios': list(),
+
+    'use_pixel_scales': False,
+    'preapply_sqrt': True,
+    'use_square_anchors': False,
+})
+
+resnet101_backbone = backbone_base.copy({
+    'name': 'ResNet101',
+    'path': 'resnet101_reducedfc.pth',
+    'type': ResNetBackbone,
+    'args': ([3, 4, 23, 3],),
+    'transform': resnet_transform,
+
+    'selected_layers': list(range(2, 8)),
+    'pred_scales': [[1]]*6,
+    'pred_aspect_ratios': [ [[0.66685089, 1.7073535, 0.87508774, 1.16524493, 0.49059086]] ] * 6,
+})
+resnet50_backbone = resnet101_backbone.copy({
+    'name': 'ResNet50',
+    'path': 'resnet50-19c8e357.pth',
+    'type': ResNetBackbone,
+    'args': ([3, 4, 6, 3],),
+    'transform': resnet_transform,
+})
+
+resnet50_dcnv2_backbone = resnet50_backbone.copy({
+    'name': 'ResNet50_DCNv2',
+    'args': ([3, 4, 6, 3], [0, 4, 6, 3]),
+})
+yolact_plus_resnet50_config = yolact_plus_base_config.copy({
+    'name': 'yolact_plus_resnet50',
+
+    'backbone': resnet50_dcnv2_backbone.copy({
+        'selected_layers': list(range(1, 4)),
+        
+        'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*5,
+        'pred_scales': [[i * 2 ** (j / 3.0) for j in range(3)] for i in [24, 48, 96, 192, 384]],
+        'use_pixel_scales': True,
+        'preapply_sqrt': False,
+        'use_square_anchors': False,
+    }),
+})
+yolact_coco_custom_config=yolact_plus_resnet50_config.copy({
+  'name':'yolact_coco_custom',
+  'dataset':coco2014_custom_dataset,
+  'max_size':550,
+  'num_classes':len(coco2014_custom_dataset.class_names)+1,
+  #training params
+  'lr_steps':(200000,300000,330000,380000),
+  'max_iter':810000,
+
+=====================================================================
+yolact_coco_custom_config=yolact_plus_resnet50_config.copy({
+  'name':'yolact_coco_custom',
+  'dataset':coco2014_custom_dataset,
+  'max_size':550,
+  'num_classes':len(coco2014_custom_dataset.class_names)+1,
+  #training params
+  'lr_steps':(200000,300000,330000,380000),
+  'max_iter':810000,
+
+  --------------------------------------------------------
+  	
+    	'backbone': resnet50_dcnv2_backbone.copy({
+        'selected_layers': list(range(1, 4)),
+        
+        'pred_aspect_ratios': [ [[1, 1/2, 2]] ]*5,
+        'pred_scales': [[i * 2 ** (j / 3.0) for j in range(3)] for i in [24, 48, 96, 192, 384]],
+        'use_pixel_scales': True,
+        'preapply_sqrt': False,
+        'use_square_anchors': False,
+------------------------------------------------------------
+	'args': ([3, 4, 6, 3], [0, 4, 6, 3]),
+------------------------------------------------------------
+	'name': 'ResNet50',
+    	'path': 'resnet50-19c8e357.pth',
+    	'type': ResNetBackbone,
+   	
+   	'transform': resnet_transform,
+----------------------------------------------
+	---------------------------------------
+	---------------------------------------
+    'has_gt': True,
+
+    # A list of names for each of you classes.
+    'class_names': COCO_CLASSES,
+
+    # COCO class ids aren't sequential, so this is a bandage fix. If your ids aren't sequential,
+    # provide a map from category_id -> index in class_names + 1 (the +1 is there because it's 1-indexed).
+    # If not specified, this just assumes category ids start at 1 and increase sequentially.
+    'label_map': None
+})
